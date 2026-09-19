@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Хороший источник</title>
+<style>
+:root{
+  --bumaga:#fbfaf8; --tush:#1a1a18; --seryy:#6e6b66; --liniya:#e4e1dc;
+  --pusto:#cfcbc4;             /* выключенная засечка шкалы: видна, но тихая */
+  --akcent:#1f5f4a;            /* один акцент на всю панель */
+  --polka2:#f2f0ec;
+}
+/* Панель живёт рядом с сайтом в теме браузера: светлая полоса в тёмном
+   окне светится. Акцент в тёмной осветлён, не инвертирован. */
+@media (prefers-color-scheme:dark){
+  :root{--bumaga:#161615;--tush:#ecebe7;--seryy:#9b978f;--liniya:#2c2b28;
+        --pusto:#3a3935;--akcent:#5fa88c;--polka2:#1d1d1b}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* Авторский display перебивает [hidden] браузера, и «скрыть» переставало
+   скрывать: форма настроек висела над лентой с первой загрузки и до
+   конца работы, сколько ни ставь hidden. Правило-из-ожога 19.09. */
+[hidden]{display:none!important}
+html,body{height:100%;width:100%;max-width:100vw;overflow-x:hidden}
+body{
+  background:var(--bumaga);color:var(--tush);
+  font:15px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;
+  text-align:left}
+:focus-visible{outline:2px solid var(--akcent);outline-offset:2px}
+header,.temy-stroka,.ekran,.lenta,footer{min-width:0;width:100%}
+/* Шапка не растягивается: весь свободный рост отдан ленте. Без этого
+   строка полок и тем отжимала ленту вниз и прокрутки не было. */
+header,.temy-stroka,footer{flex:0 0 auto}
+
+header{padding:12px 16px 0;border-bottom:1px solid var(--liniya)}
+/* Строго одна строка: перенос имени со свежестью съедал 22 пикселя
+   высоты на каждой загрузке, а лента и без того тесная. */
+.imya{font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--seryy);display:flex;align-items:baseline;gap:6px;
+  white-space:nowrap;overflow:hidden}
+.imya b{color:var(--tush);font-weight:600;flex:0 0 auto}
+#svezhest{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.nastr{margin-left:auto;font-size:12px;letter-spacing:0;text-transform:none;
+  color:var(--seryy);padding:4px 8px;min-height:28px}
+.nastr:hover{color:var(--tush)}
+.polki{display:flex;flex-wrap:wrap;gap:0 20px;margin-top:6px}
+.polka{padding:8px 0 7px;min-height:36px;border-bottom:2px solid transparent;
+  color:var(--seryy);font-size:13.5px}
+.polka .n{font-variant-numeric:tabular-nums;margin-left:5px;font-size:12px}
+.polka[aria-pressed="true"]{color:var(--tush);border-bottom-color:var(--akcent);
+  font-weight:600}
+
+/* Строка тем - ровно одна строка, что бы ни было выбрано: лишнее
+   прячется за «темы», а не растёт вниз, съедая ленту. */
+.temy-stroka{display:flex;align-items:center;gap:6px;padding:7px 16px;
+  border-bottom:1px solid var(--liniya);overflow:hidden}
+.temy-stroka .rasteg{flex:1 1 auto;display:flex;gap:6px;overflow:hidden;
+  mask-image:linear-gradient(to right,#000 85%,transparent)}
+.r{font-size:12.5px;color:var(--seryy);padding:5px 10px;min-height:30px;
+  display:inline-flex;align-items:center;gap:5px;border-radius:2px;
+  border:1px solid var(--liniya);background:var(--bumaga);white-space:nowrap;
+  flex:0 0 auto}
+.r[aria-pressed="true"]{color:var(--bumaga);background:var(--akcent);
+  border-color:var(--akcent)}
+.r .n{font-variant-numeric:tabular-nums;color:var(--seryy)}
+.r[aria-pressed="true"] .n{color:inherit;opacity:.85}
+.r.pustaya{color:var(--pusto)}
+.temy-knopka{flex:0 0 auto;font-size:12.5px;color:var(--akcent);padding:5px 8px;
+  min-height:30px;border:1px solid var(--liniya);border-radius:2px}
+.temy-knopka b{font-variant-numeric:tabular-nums}
+
+/* Экран поверх ленты. Ленту не сжимает: она на это время скрыта. */
+.ekran{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--polka2);border-bottom:1px solid var(--liniya)}
+.ekran-verh{position:sticky;top:0;background:var(--polka2);z-index:1;
+  display:flex;align-items:center;padding:11px 16px 9px;
+  border-bottom:1px solid var(--liniya);font-size:13px;
+  letter-spacing:.06em;text-transform:uppercase}
+.ekran-verh button{margin-left:auto;font-size:12px;letter-spacing:0;
+  text-transform:none;color:var(--seryy);padding:4px 8px;min-height:28px}
+.ekran-verh button:hover{color:var(--tush)}
+.ekran h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--seryy);font-weight:600;margin:0 0 8px}
+
+.nastroyki{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;
+  border-bottom:1px solid var(--liniya)}
+.nastroyki label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;
+  color:var(--seryy)}
+.nastroyki input{font:inherit;font-size:14px;padding:7px 9px;
+  border:1px solid var(--liniya);border-radius:2px;background:var(--bumaga);
+  color:var(--tush);width:100%}
+.n-niz{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+  color:var(--seryy);margin-top:2px}
+.n-niz button{border:1px solid var(--akcent);color:var(--akcent);
+  padding:6px 12px;border-radius:2px}
+
+.istochniki{padding:14px 16px 18px}
+.nabor-imya{font-size:12px;color:var(--seryy);margin:14px 0 2px;
+  padding-top:10px;border-top:1px solid var(--liniya)}
+.nabor-imya:first-of-type{margin-top:6px;padding-top:0;border-top:0}
+.ist-ryad{display:flex;align-items:flex-start;gap:9px;padding:8px 0;
+  border-bottom:1px solid var(--liniya)}
+.ist-ryad:last-of-type{border-bottom:0}
+.ist-ryad input[type=checkbox]{margin-top:3px;flex:0 0 auto;
+  accent-color:var(--akcent);width:15px;height:15px}
+.ist-telo{flex:1 1 auto;min-width:0}
+.ist-imya{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.ist-pod{font-size:12px;color:var(--seryy);margin-top:2px;overflow-wrap:anywhere}
+.ist-vykl .ist-imya,.ist-vykl .ist-pod{color:var(--pusto)}
+.ist-ubrat{flex:0 0 auto;font-size:12px;color:var(--seryy);padding:3px 6px;
+  min-height:26px}
+.ist-ubrat:hover{color:#9a3b2a}
+.ist-novyy{display:flex;flex-direction:column;gap:7px;margin-top:14px;
+  padding-top:14px;border-top:1px solid var(--liniya)}
+.ist-novyy input,.ist-novyy select{font:inherit;font-size:14px;padding:7px 9px;
+  border:1px solid var(--liniya);border-radius:2px;background:var(--bumaga);
+  color:var(--tush);width:100%}
+.ist-novyy .n-niz button{align-self:flex-start}
+.tolko-glavred{font-size:12.5px;color:var(--seryy);padding:8px 0 0}
+
+/* Выбор тем: 47 клеток читаются как 11 разделов, а не стена ярлыков. */
+#ekran-temy{padding:12px 16px 18px}
+.temy-nad{display:flex;align-items:center;gap:10px;font-size:12.5px;
+  color:var(--seryy);padding-bottom:10px}
+.temy-nad button{color:var(--akcent);padding:4px 0;min-height:26px}
+.gruppa{margin-top:12px}
+.gruppa h4{font-size:12px;letter-spacing:.04em;color:var(--seryy);
+  font-weight:600;margin-bottom:6px}
+.gruppa .set{display:flex;flex-wrap:wrap;gap:6px}
+
+.lenta{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding:0 16px}
+.pusto-tekst{padding:24px 0;color:var(--seryy)}
+.pometka{padding:8px 16px;font-size:12.5px;color:var(--tush);
+  background:var(--polka2);border-bottom:1px solid var(--liniya)}
+.k{padding:14px 0;border-bottom:1px solid var(--liniya)}
+.verh{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:12.5px;color:var(--seryy);margin-bottom:6px}
+.ist{letter-spacing:.02em}
+.zag{font-size:17px;line-height:1.3;font-weight:500;letter-spacing:-.004em;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden;color:inherit;text-decoration:none}
+a.zag:hover{text-decoration:underline}
+.niz{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;
+  margin-top:8px;font-size:12.5px;color:var(--seryy)}
+/* «почему такая рубрика» - раскрывается касанием, не подсказкой при
+   наведении: на касании подсказка не всплывает, а это главная ценность */
+.poch summary{list-style:none;cursor:pointer;display:inline;color:var(--akcent)}
+.poch summary::-webkit-details-marker{display:none}
+.poch div{font-size:12px;color:var(--seryy);margin-top:4px;line-height:1.4}
+.poch .eshche{color:var(--seryy)}
+/* карточка на стыке выбранных тем - то, ради чего темы и выбирают вместе */
+.styk{border:1px solid var(--akcent);color:var(--akcent);border-radius:2px;
+  font-size:11.5px;padding:1px 6px;letter-spacing:.02em}
+.zhanr::before{content:"· "}
+/* полнота - три засечки, а не цветная пилюля: это шкала, а не ярлык */
+.pol{display:inline-flex;gap:2px;align-items:center}
+.pol i{width:11px;height:3px;background:var(--pusto);display:block}
+.pol i.on{background:var(--tush)}
+.polnota-slovo{margin-left:auto}
+.deystviya{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:8px}
+.deystviya button{font-size:12.5px;padding:5px 10px;min-height:30px;
+  border:1px solid var(--liniya);border-radius:2px;color:var(--tush)}
+.deystviya button:hover{border-color:var(--akcent)}
+.stol{font-size:12px;color:var(--seryy)}
+.oshibka{color:#9a3b2a;font-size:12.5px;margin-top:6px}
+@media (prefers-color-scheme:dark){.oshibka{color:#e08a76}}
+
+footer{border-top:1px solid var(--liniya);padding:10px 16px;
+  display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--seryy);
+  background:var(--polka2)}
+footer .kto{color:var(--tush);font-weight:600}
+footer .ochered{margin-left:auto}
+footer .ochered b{color:var(--tush)}
+@media (prefers-reduced-motion:reduce){*{transition:none}}
+
+/* Витрина: пояснение и переключатель ступени вместо связи со службой. */
+.vitrina-blok{display:flex;flex-direction:column;gap:8px;
+  padding-bottom:16px;margin-bottom:4px;border-bottom:1px solid var(--liniya)}
+.vitrina-blok label{display:flex;flex-direction:column;gap:3px;
+  font-size:12.5px;color:var(--seryy)}
+.vitrina-blok select{font:inherit;font-size:14px;padding:7px 9px;
+  border:1px solid var(--liniya);border-radius:2px;background:var(--bumaga);
+  color:var(--tush);width:100%}
+.vitrina-blok .n-niz button{border:1px solid var(--liniya);color:var(--seryy);
+  padding:6px 12px;border-radius:2px}
+.vitrina-blok .n-niz button:hover{border-color:var(--akcent);color:var(--tush)}
+</style>
+<header>
+  <div class="imya"><b>Хороший источник</b> · <span id="svezhest"></span>
+    <button class="nastr" id="nastr-knopka" aria-label="настройки">настройки</button></div>
+  <div class="polki" id="polki"></div>
+</header>
+
+<!-- Строка тем: всегда одна строка. Всё остальное - под «темы». -->
+<div class="temy-stroka" id="temy-stroka"></div>
+
+<!-- Экран поверх ленты: настройки или выбор тем. Свою прокрутку держит
+     сам, ленту не сжимает - иначе панель съедала себя шапкой. -->
+<section class="ekran" id="ekran" hidden aria-label="экран">
+  <div class="ekran-verh">
+    <b id="ekran-imya"></b>
+    <button id="ekran-zakryt">закрыть</button>
+  </div>
+
+  <div id="ekran-nastroyki" hidden>
+    <form class="nastroyki" id="nastroyki">
+      <h3>Связь со службой</h3>
+      <label>Адрес службы<input id="n-adres" type="url"
+        placeholder="http://127.0.0.1:8765" autocomplete="off"></label>
+      <label>Ключ редакции<input id="n-klyuch" type="password"
+        placeholder="выдаёт бот @redhnbot" autocomplete="off"></label>
+      <div class="n-niz"><button type="submit">сохранить</button>
+        <span id="n-soobshchenie"></span></div>
+    </form>
+    <div class="istochniki" id="istochniki"></div>
+  </div>
+
+  <div id="ekran-temy" hidden></div>
+</section>
+
+<div class="lenta" id="lenta"></div>
+<footer>
+  <span>ты - <span class="kto" id="kto">…</span></span>
+  <span class="ochered" id="och"></span>
+</footer>
+<script>window.VITRINA_DANNYE = {"obshchee": {"obhod": "2026-09-19T03:09:42+00:00", "vsego": {"сделано": 53, "стоит посмотреть": 300}, "na_soglasovanii": 0, "ty": {"kto": "редактор", "stupen": "редактор"}, "lichnost_iz_faila": false, "vse_rubriki": [{"gruppa": "Здоровье и медицина", "rubriki": ["Здоровье", "Высокотехнологичная медицина", "Народная медицина"]}, {"gruppa": "Спорт, отдых, путешествия", "rubriki": ["Спортивные состязания", "Здоровый образ жизни", "Активный отдых", "Путешествия, туризм"]}, {"gruppa": "Культура и досуг", "rubriki": ["Кино", "Книги", "Искусство и дизайн", "Театры", "Музыка", "Танцы", "Музеи", "Компьютерные игры"]}, {"gruppa": "Образование и наука", "rubriki": ["Образование", "Обучение детей", "Наука и инновации"]}, {"gruppa": "Производство и технологии", "rubriki": ["Промышленность и производство", "Энергетика", "Авиация и космос", "Гаджеты и технологии", "Автомобили и мотоциклы", "Сельское хозяйство"]}, {"gruppa": "Город и среда", "rubriki": ["Благоустройство", "ЖКХ", "Транспорт", "Строительство"]}, {"gruppa": "Природа", "rubriki": ["Природа и заповедники", "Экология", "Животные", "Дача и садоводство"]}, {"gruppa": "Забота и участие", "rubriki": ["Волонтёрство", "Благотворительность", "Социальная поддержка", "Забота о старшем поколении", "Поддержка ветеранов"]}, {"gruppa": "Общество и память", "rubriki": ["Историческая память", "Народы России", "Религия", "Поддержка русского языка"]}, {"gruppa": "Дело и медиа", "rubriki": ["Поддержка бизнеса", "Финансы", "СМИ и Интернет"]}, {"gruppa": "Форматы событий", "rubriki": ["Выставки", "Форумы", "Конкурсы"]}]}, "polki": {"сделано": {"kartochki": [{"id": 440, "istochnik": "t.me/telerzd", "zagolovok": "РЖД ввели скидку 50% на перевозки металлических конструкций со станции Курган", "data": "2026-09-18T08:10+00:00", "ssylka": "https://t.me/telerzd/8684", "rubrika": "Транспорт", "osnovanie": "в заголовке: РЖД, перевозк, станции; в тексте: РЖД, перевозк, станции", "rubriki": ["Транспорт", "Промышленность и производство"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 425, "istochnik": "t.me/rosatominfo", "zagolovok": "«Росатом» открыл производство детекторов из особо чистого германия", "data": "2026-09-16T13:56+00:00", "ssylka": "https://t.me/rosatominfo/17627", "rubrika": "Промышленность и производство", "osnovanie": "в заголовке: производств; в тексте: производств, Предприяти", "rubriki": ["Промышленность и производство", "Наука и инновации"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 406, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "Четвертый гидроагрегат «Силовых машин» запущен на Светлинской ГЭС", "data": "2026-09-18T17:06+00:00", "ssylka": "https://t.me/sdelanounas_ru/51482", "rubrika": "Энергетика", "osnovanie": "в заголовке: гидроагрегат, ГЭС; в тексте: гидроагрегат, ГЭС", "rubriki": ["Энергетика"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 391, "istochnik": "t.me/minprirody", "zagolovok": "В Чеченской Республике построили дамбу", "data": "2026-09-17T06:54+00:00", "ssylka": "https://t.me/minprirody/8031", "rubrika": "Строительство", "osnovanie": "в заголовке: построил, дамб; в тексте: построил, дамб, строительств", "rubriki": ["Строительство"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 364, "istochnik": "t.me/mcx_ru", "zagolovok": "Центральный Московский ипподром открылся после масштабной реконструкции", "data": "2026-09-17T16:35+00:00", "ssylka": "https://t.me/mcx_ru/5703", "rubrika": "Спортивные состязания", "osnovanie": "в заголовке: ипподром; в тексте: ипподром", "rubriki": ["Спортивные состязания", "Сельское хозяйство", "Строительство", "Животные"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 350, "istochnik": "t.me/minpromtorg_ru", "zagolovok": "HAVAL открыл завод автоматических коробок передач в Тульской области", "data": "2026-09-17T18:00+00:00", "ssylka": "https://t.me/minpromtorg_ru/10269", "rubrika": "Промышленность и производство", "osnovanie": "в заголовке: завод; в тексте: завод, предприяти", "rubriki": ["Промышленность и производство", "Автомобили и мотоциклы", "Благоустройство"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 341, "istochnik": "t.me/minzdrav_ru", "zagolovok": "Михаил Мурашко открыл новую современную поликлинику в Курганской области", "data": "2026-09-18T14:31+00:00", "ssylka": "https://t.me/minzdrav_ru/15924", "rubrika": "Здоровье", "osnovanie": "в заголовке: поликлиник; в тексте: поликлиник, больниц", "rubriki": ["Здоровье"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 296, "istochnik": "Вести Образование", "zagolovok": "В Китае открылся первый в мире музей, посвященный птерозаврам", "data": "2026-09-14T12:40+03:00", "ssylka": "https://vogazeta.ru/articles/2026/9/14/international/27555-v_kitae_otkrylsya_pervyy_v_mire_muzey_posvyaschennyy_pterozavram", "rubrika": "Музеи", "osnovanie": "в заголовке: музей", "rubriki": ["Музеи"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 280, "istochnik": "Культура", "zagolovok": "В Екатеринбурге открылась вторая школа креативных индустрий", "data": "2026-09-17T14:29+03:00", "ssylka": "https://portal-kultura.ru/articles/news/378784-v-ekaterinburge-otkrylas-vtoraya-shkola-kreativnykh-industriy/", "rubrika": "Обучение детей", "osnovanie": "в заголовке: школа", "rubriki": ["Обучение детей"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 249, "istochnik": "Хайтек", "zagolovok": "Астрофизики придумали, как расшифровать погоду на далеких планетах", "data": "2026-09-17T06:56+00:00", "ssylka": "https://hightech.fm/2026/09/17/alien-weather-decoded", "rubrika": "Наука и инновации", "osnovanie": "в заголовке: Астрофизик, придумали, планет; в тексте: ученые, способ, исследова", "rubriki": ["Наука и инновации"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 208, "istochnik": "CNews", "zagolovok": "«Авто.ру» запустил ИИ-ассистента, который подскажет, как усилить объявление", "data": "2026-09-18T13:29+03:00", "ssylka": "https://www.cnews.ru/news/line/2026-09-18_avtoru_zapustil_ii-assistenta", "rubrika": "Автомобили и мотоциклы", "osnovanie": "в заголовке: Авто; в тексте: Авто", "rubriki": ["Автомобили и мотоциклы", "Гаджеты и технологии"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 168, "istochnik": "Наука ТАСС", "zagolovok": "В гнездах нескольких видов птиц арктических островов обнаружили пластиковый мусор", "data": "2026-08-17T06:30+03:00", "ssylka": "https://nauka.tass.ru/nauka/28017473", "rubrika": "Экология", "osnovanie": "в заголовке: пластик, мусор; в тексте: пластик", "rubriki": ["Экология", "Наука и инновации", "Животные"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 115, "istochnik": "Правительство России", "zagolovok": "Марат Хуснуллин: По нацпроекту «Инфраструктура для жизни» построили и обновили более 1,7 тыс. объектов ЖКХ", "data": "2026-09-17T18:05+03:00", "ssylka": "http://government.ru/news/59912/", "rubrika": "ЖКХ", "osnovanie": "в заголовке: ЖКХ", "rubriki": ["ЖКХ", "Строительство"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 90, "istochnik": "N+1", "zagolovok": "Зоологи впервые за 100 с лишним лет открыли новый вид кошек", "data": "2026-09-18T11:20+03:00", "ssylka": "https://nplus1.ru/news/2026/09/18/leopardus-tilcayo", "rubrika": "Животные", "osnovanie": "в заголовке: Зоолог, вид кошек; в тексте: Зоолог, вид кошек", "rubriki": ["Животные", "Наука и инновации"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 80, "istochnik": "Наука и жизнь", "zagolovok": "На конференции COP17 представлен комплекс решений по восстановлению земель и устойчивому управлению водными ресурсами", "data": "2026-08-31T10:59+03:00", "ssylka": "https://www.nkj.ru/prtnews/60483/", "rubrika": "Экология", "osnovanie": "в заголовке: восстановлению земел; в тексте: опустынива, восстановления земел", "rubriki": ["Экология"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 40, "istochnik": "Стройгазета", "zagolovok": "Марат Хуснуллин: в регионах введено почти 50 миллионов «квадратов» жилья", "data": "2026-09-16T16:20+03:00", "ssylka": "https://stroygaz.ru/news/dwelling/marat-khusnullin-v-regionakh-vvedeno-pochti-50-millionov-kvadratov-zhilya/", "rubrika": "Строительство", "osnovanie": "в заголовке: «квадрат, жилья; в тексте: кв. м", "rubriki": ["Строительство"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 437, "istochnik": "t.me/telerzd", "zagolovok": "Глава РЖД возглавил рейтинг Топ-250 в категории «Транспорт»", "data": "2026-09-17T08:44+00:00", "ssylka": "https://t.me/telerzd/8681", "rubrika": "Транспорт", "osnovanie": "в заголовке: РЖД, Транспорт; в тексте: РЖД, Транспорт", "rubriki": ["Транспорт"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 424, "istochnik": "t.me/rosatominfo", "zagolovok": "«Росатом» создал технологию получения железа из отходов угольной генерации", "data": "2026-09-16T12:49+00:00", "ssylka": "https://t.me/rosatominfo/17625", "rubrika": "Энергетика", "osnovanie": "в заголовке: угольн, генераци; в тексте: угольн, генераци, ТЭЦ", "rubriki": ["Энергетика", "Промышленность и производство"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 404, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "Запущено движение по транспортной развязке на 593 километре трассы М-11 «Нева»", "data": "2026-09-18T15:37+00:00", "ssylka": "https://t.me/sdelanounas_ru/51478", "rubrika": "Транспорт", "osnovanie": "в заголовке: транспорт, трассы, М-11; в тексте: транспорт, трассы, М-11", "rubriki": ["Транспорт", "Строительство"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 383, "istochnik": "t.me/minprirody", "zagolovok": "В России создано руководство по наблюдению за журавлями", "data": "2026-09-14T10:33+00:00", "ssylka": "https://t.me/minprirody/8020", "rubrika": "Животные", "osnovanie": "в заголовке: журавл; в тексте: журавл", "rubriki": ["Животные", "Наука и инновации", "Природа и заповедники"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 334, "istochnik": "t.me/minzdrav_ru", "zagolovok": "В Ульяновской области открылась новая взрослая поликлиника", "data": "2026-09-17T13:33+00:00", "ssylka": "https://t.me/minzdrav_ru/15906", "rubrika": "Здоровье", "osnovanie": "в заголовке: поликлиник; в тексте: поликлиник, медиц", "rubriki": ["Здоровье"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 266, "istochnik": "Культура", "zagolovok": "В Вологодской области после капремонта открылся Сокольский краеведческий музей", "data": "2026-09-18T10:53+03:00", "ssylka": "https://portal-kultura.ru/articles/news/378798-v-vologodskoy-oblasti-posle-kapremonta-otkrylsya-sokolskiy-kraevedcheskiy-muzey/", "rubrika": "Музеи", "osnovanie": "в заголовке: музей", "rubriki": ["Музеи", "ЖКХ"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 246, "istochnik": "Хайтек", "zagolovok": "Университет Иннополис открыл регистрацию на олимпиады по ИИ, математике, информатике, инфобезу и робототехнике", "data": "2026-09-17T15:27+00:00", "ssylka": "https://hightech.fm/2026/09/17/innopolis-olympiad-registration", "rubrika": "Образование", "osnovanie": "в заголовке: Университет, олимпиад; в тексте: олимпиад, вуза", "rubriki": ["Образование", "Гаджеты и технологии"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 194, "istochnik": "CNews", "zagolovok": "Магистранты ИТМО создали для «Авито» ИИ-помощника для проверки домашних заданий", "data": "2026-09-18T15:19+03:00", "ssylka": "https://www.cnews.ru/news/line/2026-09-18_magistranty_itmo_sozdali", "rubrika": "Образование", "osnovanie": "в заголовке: Магистрант; в тексте: Магистрант", "rubriki": ["Образование", "Наука и инновации", "Гаджеты и технологии"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 165, "istochnik": "Наука ТАСС", "zagolovok": "Создана автоматизированная система контроля качества сборки заказа", "data": "2026-08-17T11:41+03:00", "ssylka": "https://nauka.tass.ru/nauka/28018413", "rubrika": "Гаджеты и технологии", "osnovanie": "в тексте: программного обеспечени", "rubriki": ["Гаджеты и технологии"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 106, "istochnik": "Правительство России", "zagolovok": "Юрий Трутнев: В Забайкалье открыли две новые тропы Дальнего Востока", "data": "2026-09-18T14:10+03:00", "ssylka": "http://government.ru/news/59920/", "rubrika": "Природа и заповедники", "osnovanie": "в заголовке: тропы", "rubriki": ["Природа и заповедники"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 36, "istochnik": "Стройгазета", "zagolovok": "В Петербурге на год раньше отремонтировали исторические здания на Невском проспекте", "data": "2026-09-16T20:23+03:00", "ssylka": "https://stroygaz.ru/news/architecture/v-peterburge-na-god-ranshe-otremontirovali-istoricheskie-zdaniya-na-nevskom-prospekte/", "rubrika": "Строительство", "osnovanie": "в заголовке: отремонтирова, здани; в тексте: отремонтирова, здани", "rubriki": ["Строительство", "Историческая память"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 420, "istochnik": "t.me/rosatominfo", "zagolovok": "Урановые \"хвосты\" превращают в ресурс будущего: в Красноярском крае запустили вторую в России установку по переработке обеднённого урана.", "data": "2026-09-15T10:09+00:00", "ssylka": "https://t.me/rosatominfo/17614", "rubrika": "Энергетика", "osnovanie": "в заголовке: Урановые, урана; в тексте: Урановые, урана", "rubriki": ["Энергетика", "Промышленность и производство"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 402, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "HAVAL запустил первое в России производство автоматических трансмиссий", "data": "2026-09-18T12:28+00:00", "ssylka": "https://t.me/sdelanounas_ru/51473", "rubrika": "Промышленность и производство", "osnovanie": "в заголовке: производств; в тексте: производств, предприяти", "rubriki": ["Промышленность и производство", "Автомобили и мотоциклы"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 251, "istochnik": "Культура", "zagolovok": "Русский музей завершил реставрацию двух картин из Курска и Кузбасса", "data": "2026-09-18T20:08+03:00", "ssylka": "https://portal-kultura.ru/articles/news/378813-russkiy-muzey-zavershil-restavratsiyu-dvukh-kartin-iz-kurska-i-kuzbassa/", "rubrika": "Искусство и дизайн", "osnovanie": "в заголовке: картин", "rubriki": ["Искусство и дизайн", "Музеи"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 190, "istochnik": "CNews", "zagolovok": "В России создан плазменный двигатель для наноспутников. Он поможет создавать орбитальные группировки", "data": "2026-09-18T15:57+03:00", "ssylka": "https://www.cnews.ru/news/top/2026-09-18_dlya_nanosputnikov_sozdan", "rubrika": "Наука и инновации", "osnovanie": "в заголовке: нано; в тексте: нано", "rubriki": ["Наука и инновации", "Авиация и космос"], "zhanr": "Рекорд", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 162, "istochnik": "Наука ТАСС", "zagolovok": "В РФ создали сверхчувствительный наносенсор для избирательного анализа паров", "data": "2026-08-17T14:00+03:00", "ssylka": "https://nauka.tass.ru/nauka/28018857", "rubrika": "Наука и инновации", "osnovanie": "в заголовке: наносенсор; в тексте: нано", "rubriki": ["Наука и инновации"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 104, "istochnik": "Правительство России", "zagolovok": "Марат Хуснуллин: С начала года запущено строительство 26,6 млн кв. м жилья", "data": "2026-09-18T17:10+03:00", "ssylka": "http://government.ru/news/59923/", "rubrika": "Строительство", "osnovanie": "в заголовке: строительств, кв. м, жилья", "rubriki": ["Строительство"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 32, "istochnik": "Стройгазета", "zagolovok": "Зеленый биохакинг: зачем в технополисе высадили фармацевтический сквер", "data": "2026-09-17T10:36+03:00", "ssylka": "https://stroygaz.ru/publication/projection/zelenyy-biokhaking-zachem-v-tekhnopolise-vysadili-farmatsevticheskiy-skver/", "rubrika": "Благоустройство", "osnovanie": "в заголовке: сквер; в тексте: Сквер, общественное пространств", "rubriki": ["Благоустройство"], "zhanr": "", "polnota": "полная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 401, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "В России восстановили известное советское высшее танковое командное училище", "data": "2026-09-18T11:02+00:00", "ssylka": "https://t.me/sdelanounas_ru/51472", "rubrika": "Образование", "osnovanie": "в заголовке: училищ; в тексте: училищ", "rubriki": ["Образование"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 161, "istochnik": "Наука ТАСС", "zagolovok": "РФ и КНР создали умные капсулы, удешевляющие добычу \"глубокой\" нефти", "data": "2026-08-17T16:31+03:00", "ssylka": "https://nauka.tass.ru/nauka/28019445", "rubrika": "Энергетика", "osnovanie": "в заголовке: нефт", "rubriki": ["Энергетика"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 8, "istochnik": "Стройгазета", "zagolovok": "Российский производитель стройматериалов возглавил рейтинг самых дорогих брендов страны", "data": "2026-09-18T11:37+03:00", "ssylka": "https://stroygaz.ru/news/materials/rossiyskiy-proizvoditel-stroymaterialov-vozglavil-reyting-samykh-dorogikh-brendov-strany/", "rubrika": "Промышленность и производство", "osnovanie": "в заголовке: производител, стройматериал; в тексте: производител", "rubriki": ["Промышленность и производство"], "zhanr": "Победа", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 399, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "В Ульяновске открыли рабочее движение по мосту через реку Свиягу", "data": "2026-09-18T08:28+00:00", "ssylka": "https://t.me/sdelanounas_ru/51468", "rubrika": "Строительство", "osnovanie": "в заголовке: мосту; в тексте: мосту, Мост", "rubriki": ["Строительство", "Природа и заповедники"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 150, "istochnik": "Наука ТАСС", "zagolovok": "Разработан метод оценки качества композитов для космической оптики", "data": "2026-08-18T10:35+03:00", "ssylka": "https://nauka.tass.ru/nauka/28021327", "rubrika": "Наука и инновации", "osnovanie": "в заголовке: метод оценк", "rubriki": ["Наука и инновации", "Авиация и космос"], "zhanr": "", "polnota": "неполная", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}, {"id": 4, "istochnik": "Стройгазета", "zagolovok": "Марат Хуснуллин: по нацпроекту построено и обновлено более 1,7 тысяч объектов ЖКХ", "data": "2026-09-18T14:35+03:00", "ssylka": "https://stroygaz.ru/news/zkh/marat-khusnullin-po-natsproektu-postroeno-i-obnovleno-bolee-1-7-tysyach-obektov-zhkkh/", "rubrika": "ЖКХ", "osnovanie": "в заголовке: ЖКХ; в тексте: коммунальн, капитальный ремонт", "rubriki": ["ЖКХ", "Строительство"], "zhanr": "", "polnota": "слабая", "sostoyanie": "взята", "stupen": "", "dostupno": ["на согласовании", "отклонено"]}], "rubriki": {"Наука и инновации": 16, "Строительство": 10, "Промышленность и производство": 9, "Энергетика": 7, "Гаджеты и технологии": 5, "Животные": 5, "Здоровье": 5, "Автомобили и мотоциклы": 3, "ЖКХ": 3, "Музеи": 3, "Образование": 3, "Природа и заповедники": 3, "Транспорт": 3, "Экология": 3, "Авиация и космос": 2, "Благоустройство": 2, "Высокотехнологичная медицина": 2, "Искусство и дизайн": 1, "Историческая память": 1, "Обучение детей": 1, "Сельское хозяйство": 1, "Спортивные состязания": 1}}, "стоит посмотреть": {"kartochki": [{"id": 492, "istochnik": "t.me/rosmolodez", "zagolovok": "Региональная программа для участников МФМ-2026 в самом разгаре!", "data": "2026-09-18T14:15+00:00", "ssylka": "https://t.me/rosmolodez/24102", "rubrika": "Музеи", "osnovanie": "в тексте: Музей", "rubriki": ["Музеи"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 487, "istochnik": "t.me/minsportrf", "zagolovok": "Министерство спорта Российской Федерации", "data": "2026-09-18T12:04+00:00", "ssylka": "https://t.me/minsportrf/23099", "rubrika": "Спортивные состязания", "osnovanie": "в тексте: турнир, соревновани, спортсмен", "rubriki": ["Спортивные состязания"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 481, "istochnik": "t.me/mchs_official", "zagolovok": "Александр Куренков оценил условия для обучения и проживания курсантов ивановского вуза МЧС России", "data": "2026-09-18T13:03+00:00", "ssylka": "https://t.me/mchs_official/34978", "rubrika": "Образование", "osnovanie": "в заголовке: обучени, вуза; в тексте: обучени, вуза", "rubriki": ["Образование"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 462, "istochnik": "t.me/goodnewsrussia", "zagolovok": "17 новых заводов в России — июнь 2025", "data": "2025-07-20T10:43+00:00", "ssylka": "https://t.me/GoodNewsRussia/44", "rubrika": "Промышленность и производство", "osnovanie": "в заголовке: завод; в тексте: завод, производств", "rubriki": ["Промышленность и производство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 459, "istochnik": "t.me/mos_sobyanin", "zagolovok": "Сегодня вместе с заместителем Министра обороны России Анной Цивилёвой посетили Госпиталь ветеранов войн №3 — одно из крупнейших специализированных лечебных учреждений Москвы", "data": "2026-09-18T13:45+00:00", "ssylka": "https://t.me/mos_sobyanin/21819", "rubrika": "Поддержка ветеранов", "osnovanie": "в заголовке: ветеран; в тексте: ветеран, СВО", "rubriki": ["Поддержка ветеранов", "Здоровье"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 449, "istochnik": "t.me/fondpotanin", "zagolovok": "Коротко рассказываем о наших рабочих поездках.", "data": "2026-09-17T07:08+00:00", "ssylka": "https://t.me/fondpotanin/4030", "rubrika": "Транспорт", "osnovanie": "в заголовке: поезд; в тексте: поезд", "rubriki": ["Транспорт", "Искусство и дизайн", "Театры", "Музеи"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 442, "istochnik": "t.me/telerzd", "zagolovok": "Вокзал как урок географии: на Казанском прошёл «НЕурок географии»", "data": "2026-09-18T13:51+00:00", "ssylka": "https://t.me/telerzd/8686", "rubrika": "Транспорт", "osnovanie": "в заголовке: Вокзал; в тексте: Вокзал, вокзал, РЖД", "rubriki": ["Транспорт"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 433, "istochnik": "t.me/gazprom", "zagolovok": "«Газпром» обеспечивает создание всей цепочки поставки газа: от месторождений до границ земельных участков граждан, котельных предприятий и социальных учреждений. Работа ведется в тесном взаимодействии", "data": "2026-09-18T16:35+00:00", "ssylka": "https://t.me/gazprom/2539", "rubrika": "Энергетика", "osnovanie": "в заголовке: газа, котельн; в тексте: газа, котельн, газ", "rubriki": ["Энергетика", "Промышленность и производство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 429, "istochnik": "t.me/rosatominfo", "zagolovok": "Атомфлотское растениеводство как отдельный вид искусства. Белые розы, фиалки и карликовые перцы на борту головного универсального атомного ледокола «Арктика». Фото и оранжерея старшего помощника капит", "data": "2026-09-18T06:32+00:00", "ssylka": "https://t.me/rosatominfo/17631", "rubrika": "не определено", "osnovanie": "", "rubriki": ["не определено"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 416, "istochnik": "t.me/rostecru", "zagolovok": "Кот на месте, Пёс тоже.", "data": "2026-09-18T17:54+00:00", "ssylka": "https://t.me/rostecru/12826", "rubrika": "Животные", "osnovanie": "в заголовке: Кот; в тексте: Кот, приют для", "rubriki": ["Животные"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 405, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "Ил-76 доставил восемь жирафов из Намибии в Казань", "data": "2026-09-18T16:28+00:00", "ssylka": "https://t.me/sdelanounas_ru/51479", "rubrika": "Здоровье", "osnovanie": "в тексте: вакцин", "rubriki": ["Здоровье"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 394, "istochnik": "t.me/minprirody", "zagolovok": "Лучший сотрудник Минприроды России", "data": "2026-09-17T14:04+00:00", "ssylka": "https://t.me/minprirody/8034", "rubrika": "Экология", "osnovanie": "в тексте: эколог", "rubriki": ["Экология"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 376, "istochnik": "t.me/mintransrussia", "zagolovok": "Министерство транспорта РФ", "data": "2026-09-17T13:31+00:00", "ssylka": "https://t.me/mintransrussia/14274", "rubrika": "Транспорт", "osnovanie": "в заголовке: транспорт; в тексте: транспорт, М-11", "rubriki": ["Транспорт", "Строительство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 371, "istochnik": "t.me/mcx_ru", "zagolovok": "Уборочная кампания в стране идет высокими темпами. Убрано порядка 85% площадей зерновых и зернобобовых культур.", "data": "2026-09-18T20:21+00:00", "ssylka": "https://t.me/mcx_ru/5722", "rubrika": "Сельское хозяйство", "osnovanie": "в заголовке: зерн; в тексте: зерн", "rubriki": ["Сельское хозяйство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 362, "istochnik": "t.me/mintsifry", "zagolovok": "Каждый второй россиянин пользуется цифровым профилем на Госуслугах", "data": "2026-03-27T11:31+00:00", "ssylka": "https://t.me/mintsifry/2794", "rubrika": "Гаджеты и технологии", "osnovanie": "в заголовке: цифров; в тексте: цифров", "rubriki": ["Гаджеты и технологии", "Финансы"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 352, "istochnik": "t.me/minpromtorg_ru", "zagolovok": "Антон Алиханов доложил Президенту о расширении флота гражданской авиации и о развитии отрасли", "data": "2026-09-18T15:37+00:00", "ssylka": "https://t.me/minpromtorg_ru/10278", "rubrika": "Авиация и космос", "osnovanie": "в заголовке: авиа; в тексте: авиа, самолет", "rubriki": ["Авиация и космос", "Транспорт"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 346, "istochnik": "t.me/minobrnaukiofficial", "zagolovok": "На площадке ГУУ прошла первая очная сессия обучающих мероприятий по международному профилю для университетов и научных организаций", "data": "2026-09-18T19:01+00:00", "ssylka": "https://t.me/minobrnaukiofficial/20690", "rubrika": "Образование", "osnovanie": "в заголовке: университет; в тексте: университет, образовани, студент", "rubriki": ["Образование", "Наука и инновации"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 337, "istochnik": "t.me/minzdrav_ru", "zagolovok": "Всемирный день безопасности пациентов объединяет медиков по всей стране", "data": "2026-09-17T17:10+00:00", "ssylka": "https://t.me/minzdrav_ru/15915", "rubrika": "Здоровье", "osnovanie": "в заголовке: пациент, медик; в тексте: пациент, медик, медиц", "rubriki": ["Здоровье"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 333, "istochnik": "t.me/mintrudrf", "zagolovok": "Порядка 64,5 тыс. граждан прошли бесплатное переобучение в 2026 году", "data": "2026-09-18T08:50+00:00", "ssylka": "https://t.me/mintrudrf/3844", "rubrika": "Образование", "osnovanie": "в тексте: обучени", "rubriki": ["Образование"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 320, "istochnik": "t.me/minstroyrf", "zagolovok": "В Каланчакском муниципальном округе Херсонской области специалистами Республики Мордовия завершен капитальный ремонт объектов теплоснабжения Центрального дворца культуры.", "data": "2026-09-18T17:32+00:00", "ssylka": "https://t.me/minstroyrf/25983", "rubrika": "ЖКХ", "osnovanie": "в заголовке: капитальный ремонт; в тексте: капитальный ремонт, водоснабжен", "rubriki": ["ЖКХ"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 313, "istochnik": "Москва mos.ru", "zagolovok": "Посещение госпиталя для ветеранов войн № 3", "data": "2026-09-18T16:15+03:00", "ssylka": "https://www.mos.ru/mayor/media/photo/10336057/", "rubrika": "Поддержка ветеранов", "osnovanie": "в заголовке: ветеран", "rubriki": ["Поддержка ветеранов"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 303, "istochnik": "Вести Образование", "zagolovok": "Алексей Голубицкий: «Число бюджетных мест на педагогические специальности больше, чем желающих на них поступить»", "data": "2026-09-11T09:46+03:00", "ssylka": "https://vogazeta.ru/articles/2026/9/11/quality_of_education/27548-aleksey_golubitskiy_chislo_byudzhetnyh_mest_na_pedagogicheskie_spetsialnosti_bolshe_chem_zhelayuschih_na_nih_postupit", "rubrika": "Образование", "osnovanie": "в заголовке: педагог", "rubriki": ["Образование"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 279, "istochnik": "Культура", "zagolovok": "Луганская филармония впервые выступит в Магаданской области", "data": "2026-09-17T14:38+03:00", "ssylka": "https://portal-kultura.ru/articles/news/378785-luganskaya-filarmoniya-vpervye-vystupit-v-magadanskoy-oblasti/", "rubrika": "Музыка", "osnovanie": "в заголовке: филармони", "rubriki": ["Музыка"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 250, "istochnik": "Хайтек", "zagolovok": "«Уэбб» нашел рекордно малые звездообразные объекты", "data": "2026-09-17T06:31+00:00", "ssylka": "https://hightech.fm/2026/09/17/webb-smallest-stars", "rubrika": "Наука и инновации", "osnovanie": "в тексте: Астроном, планет", "rubriki": ["Наука и инновации"], "zhanr": "Рекорд", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 491, "istochnik": "t.me/rosmolodez", "zagolovok": "Сохраняем прошлое – строим будущее", "data": "2026-09-18T09:30+00:00", "ssylka": "https://t.me/rosmolodez/24101", "rubrika": "не определено", "osnovanie": "", "rubriki": ["не определено"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 486, "istochnik": "t.me/minsportrf", "zagolovok": "Министерство спорта Российской Федерации", "data": "2026-09-18T10:34+00:00", "ssylka": "https://t.me/minsportrf/23098", "rubrika": "Спортивные состязания", "osnovanie": "в тексте: чемпион, завоева, чемпионат", "rubriki": ["Спортивные состязания"], "zhanr": "Победа", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 480, "istochnik": "t.me/mchs_official", "zagolovok": "Первокурсники Ивановской академии МЧС России приняли присягу", "data": "2026-09-18T12:25+00:00", "ssylka": "https://t.me/mchs_official/34977", "rubrika": "не определено", "osnovanie": "", "rubriki": ["не определено"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 458, "istochnik": "t.me/mos_sobyanin", "zagolovok": "Расширение улично-дорожной сети стимулирует развитие ТиНАО", "data": "2026-09-18T10:30+00:00", "ssylka": "https://t.me/mos_sobyanin/21817", "rubrika": "Строительство", "osnovanie": "в тексте: строительств, дорог, дороги", "rubriki": ["Строительство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 448, "istochnik": "t.me/fondpotanin", "zagolovok": "Утвержден план мероприятий по развитию ФЦК", "data": "2026-09-16T14:49+00:00", "ssylka": "https://t.me/fondpotanin/4029", "rubrika": "Образование", "osnovanie": "в тексте: вузы, университет", "rubriki": ["Образование"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 441, "istochnik": "t.me/telerzd", "zagolovok": "Более 9 миллионов вагонов проверили «электронные ворота» на ВСЖД", "data": "2026-09-18T10:45+00:00", "ssylka": "https://t.me/telerzd/8685", "rubrika": "Транспорт", "osnovanie": "в тексте: железной дорог, поезд", "rubriki": ["Транспорт"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 432, "istochnik": "t.me/gazprom", "zagolovok": "Алексей Миллер принял участие в телемосте Президента России Владимира Путина по подключению к сетевому газу социальных объектов и жилья в пяти регионах РФ.", "data": "2026-09-18T16:34+00:00", "ssylka": "https://t.me/gazprom/2532", "rubrika": "Строительство", "osnovanie": "в заголовке: жилья; в тексте: жилья, построен, построил", "rubriki": ["Строительство", "Здоровье", "Энергетика"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 428, "istochnik": "t.me/rosatominfo", "zagolovok": "«Росатом» удвоит количество электрозарядных станций в Москве", "data": "2026-09-17T09:53+00:00", "ssylka": "https://t.me/rosatominfo/17630", "rubrika": "Здоровый образ жизни", "osnovanie": "в тексте: зарядк", "rubriki": ["Здоровый образ жизни"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 414, "istochnik": "t.me/rostecru", "zagolovok": "В аэропорту Махачкалы впервые в РФ внедрили биометрический контроль доступа от Ростеха.", "data": "2026-09-18T15:34+00:00", "ssylka": "https://t.me/rostecru/12822", "rubrika": "Авиация и космос", "osnovanie": "в заголовке: аэропорт; в тексте: аэропорт", "rubriki": ["Авиация и космос"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 400, "istochnik": "t.me/sdelanounas_ru", "zagolovok": "Фото, которого вы не видели: LADA и чилийский футбол", "data": "2026-09-18T10:28+00:00", "ssylka": "https://t.me/sdelanounas_ru/51469", "rubrika": "Спортивные состязания", "osnovanie": "в заголовке: футбол; в тексте: футбол, выигра", "rubriki": ["Спортивные состязания", "Автомобили и мотоциклы"], "zhanr": "Победа", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 390, "istochnik": "t.me/minprirody", "zagolovok": "Минприроды России приняло участие в пресс-конференции о причинах нападениях бурых медведей", "data": "2026-09-16T11:50+00:00", "ssylka": "https://t.me/minprirody/8030", "rubrika": "Животные", "osnovanie": "в заголовке: медвед; в тексте: медвед, животн, Медвед", "rubriki": ["Животные"], "zhanr": "Рекорд", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 375, "istochnik": "t.me/mintransrussia", "zagolovok": "Министерство транспорта РФ", "data": "2026-09-17T10:31+00:00", "ssylka": "https://t.me/mintransrussia/14273", "rubrika": "Транспорт", "osnovanie": "в заголовке: транспорт; в тексте: транспорт", "rubriki": ["Транспорт", "Спортивные состязания"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 370, "istochnik": "t.me/mcx_ru", "zagolovok": "Оксана Лут посетила ряд агропредприятий Пензенской области", "data": "2026-09-18T19:05+00:00", "ssylka": "https://t.me/mcx_ru/5715", "rubrika": "Сельское хозяйство", "osnovanie": "в заголовке: агро; в тексте: агро, Агро, фермер", "rubriki": ["Сельское хозяйство", "Промышленность и производство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 361, "istochnik": "t.me/mintsifry", "zagolovok": "Начался новый отбор особо значимых проектов, претендующих на гранты РФРИТ", "data": "2026-03-27T07:02+00:00", "ssylka": "https://t.me/mintsifry/2793", "rubrika": "Промышленность и производство", "osnovanie": "в тексте: импортозамещ, предприяти, промышленн", "rubriki": ["Промышленность и производство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 351, "istochnik": "t.me/minpromtorg_ru", "zagolovok": "Минпромторг России усиливает работу по развитию инфраструктуры обращения со вторичными ресурсами", "data": "2026-09-18T12:00+00:00", "ssylka": "https://t.me/minpromtorg_ru/10275", "rubrika": "Промышленность и производство", "osnovanie": "в тексте: производств, промышленн, предприяти", "rubriki": ["Промышленность и производство"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}, {"id": 345, "istochnik": "t.me/minobrnaukiofficial", "zagolovok": "Валерий Фальков провел рабочую встречу с председателем Совета ректоров вузов Тюменской области, ректором Тюменского государственного университета Иваном Романчуком", "data": "2026-09-18T17:32+00:00", "ssylka": "https://t.me/minobrnaukiofficial/20686", "rubrika": "Образование", "osnovanie": "в заголовке: вузов, университет; в тексте: вузов, университет, образовани", "rubriki": ["Образование", "Гаджеты и технологии"], "zhanr": "", "polnota": "нет", "sostoyanie": "серая", "stupen": "", "dostupno": ["предложено", "взята", "отклонено"]}], "rubriki": {"не определено": 64, "Наука и инновации": 38, "Образование": 26, "Промышленность и производство": 25, "Гаджеты и технологии": 23, "Здоровье": 19, "Строительство": 17, "Транспорт": 16, "Спортивные состязания": 15, "Музеи": 11, "Обучение детей": 11, "Авиация и космос": 10, "Музыка": 10, "Природа и заповедники": 9, "Животные": 8, "СМИ и Интернет": 8, "Финансы": 8, "Энергетика": 7, "Забота о старшем поколении": 6, "Книги": 6, "Благоустройство": 5, "Поддержка бизнеса": 5, "Социальная поддержка": 5, "Театры": 5, "ЖКХ": 4, "Поддержка ветеранов": 4, "Историческая память": 3, "Сельское хозяйство": 3, "Экология": 3, "Автомобили и мотоциклы": 2, "Искусство и дизайн": 2, "Кино": 2, "Путешествия": 2, "Религия": 2, "туризм": 2, "Активный отдых": 1, "Дача и садоводство": 1, "Здоровый образ жизни": 1, "Поддержка русского языка": 1, "Путешествия, туризм": 1, "Танцы": 1}}, "на согласовании": {"kartochki": [], "rubriki": {}}}};
+window.VITRINA_PRAVILA = {"stupeni": ["младший редактор", "редактор", "региональный редактор", "федеральный редактор", "главный редактор"], "dostupno": {"взята": {"младший редактор": ["предложено", "на согласовании"], "редактор": ["на согласовании", "отклонено"], "региональный редактор": ["на согласовании", "отклонено"], "федеральный редактор": ["на согласовании", "отклонено"], "главный редактор": ["на согласовании", "отклонено"]}, "предложено": {"младший редактор": ["на согласовании"], "редактор": ["на согласовании", "отклонено"], "региональный редактор": ["на согласовании", "отклонено"], "федеральный редактор": ["на согласовании", "отклонено"], "главный редактор": ["на согласовании", "отклонено"]}, "на согласовании": {"младший редактор": [], "редактор": ["на доработку", "отклонено"], "региональный редактор": ["на доработку", "отклонено"], "федеральный редактор": ["на доработку", "отклонено"], "главный редактор": ["одобрено", "на доработку", "отклонено"]}, "на доработку": {"младший редактор": ["на согласовании"], "редактор": ["на согласовании", "отклонено"], "региональный редактор": ["на согласовании", "отклонено"], "федеральный редактор": ["на согласовании", "отклонено"], "главный редактор": ["на согласовании", "отклонено"]}, "одобрено": {"младший редактор": [], "редактор": ["в работе", "отклонено"], "региональный редактор": ["в работе", "отклонено"], "федеральный редактор": ["в работе", "отклонено"], "главный редактор": ["в работе", "отклонено"]}, "в работе": {"младший редактор": [], "редактор": ["опубликовано", "отклонено"], "региональный редактор": ["опубликовано", "отклонено"], "федеральный редактор": ["опубликовано", "отклонено"], "главный редактор": ["опубликовано", "отклонено"]}, "опубликовано": {"младший редактор": [], "редактор": [], "региональный редактор": [], "федеральный редактор": [], "главный редактор": []}, "отклонено": {"младший редактор": [], "редактор": ["взята"], "региональный редактор": ["взята"], "федеральный редактор": ["взята"], "главный редактор": ["взята"]}, "серая": {"младший редактор": ["предложено"], "редактор": ["предложено", "взята", "отклонено"], "региональный редактор": ["предложено", "взята", "отклонено"], "федеральный редактор": ["предложено", "взята", "отклонено"], "главный редактор": ["предложено", "взята", "отклонено"]}, "отсев": {"младший редактор": [], "редактор": ["взята"], "региональный редактор": ["взята"], "федеральный редактор": ["взята"], "главный редактор": ["взята"]}}, "perehody": {"взята": {"предложено": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "редактор", "редактор": "региональный редактор", "региональный редактор": "федеральный редактор", "федеральный редактор": "главный редактор", "главный редактор": "главный редактор"}}, "на согласовании": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "редактор", "редактор": "региональный редактор", "региональный редактор": "федеральный редактор", "федеральный редактор": "главный редактор", "главный редактор": "главный редактор"}}, "отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}, "предложено": {"отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "на согласовании": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "редактор", "редактор": "региональный редактор", "региональный редактор": "федеральный редактор", "федеральный редактор": "главный редактор", "главный редактор": "главный редактор"}}}, "на согласовании": {"отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "на доработку": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "младший редактор", "региональный редактор": "редактор", "федеральный редактор": "региональный редактор", "главный редактор": "федеральный редактор"}}, "одобрено": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}, "на доработку": {"отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "на согласовании": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "редактор", "редактор": "региональный редактор", "региональный редактор": "федеральный редактор", "федеральный редактор": "главный редактор", "главный редактор": "главный редактор"}}}, "одобрено": {"в работе": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}, "в работе": {"опубликовано": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}, "опубликовано": {}, "отклонено": {"взята": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}, "серая": {"отклонено": {"nuzhna_prichina": true, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "взята": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}, "предложено": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "редактор", "редактор": "региональный редактор", "региональный редактор": "федеральный редактор", "федеральный редактор": "главный редактор", "главный редактор": "главный редактор"}}}, "отсев": {"взята": {"nuzhna_prichina": false, "stupen_po_deystvuyushchemu": {"младший редактор": "младший редактор", "редактор": "редактор", "региональный редактор": "региональный редактор", "федеральный редактор": "федеральный редактор", "главный редактор": "главный редактор"}}}}};</script>
+<script>// Витрина: та же панель, но служба живёт в самой странице.
+//
+// Зачем. Расширение ставится руками и требует поднятой службы с ключом -
+// показать работу коллеге или заказчику этим способом нельзя: он не будет
+// поднимать сервер, чтобы посмотреть. Здесь тот же panel.js, только
+// zapros() уходит не в сеть, а сюда: данные - настоящий обход, правила
+// очереди - выведены из ochered.py при сборке, не переписаны руками
+// (два места с одним правилом расходятся - наш записанный ожог).
+//
+// Что НЕ настоящее и о чём сказано на самой странице: обхода нет, лента
+// не обновляется, нажатия живут в этом браузере и никуда не уходят.
+"use strict";
+(() => {
+  const S = globalThis.VITRINA_DANNYE;          // вшиты сборкой
+  const PRAVILA = globalThis.VITRINA_PRAVILA;   // выведены из ochered.py
+  const PAMYAT = "vitrina-horoshiy-istochnik";
+
+  // Все карточки в одну кучу: полка - это состояние, а не отдельный ящик.
+  const vse = [];
+  for (const [, polka] of Object.entries(S.polki)) {
+    for (const k of polka.kartochki) {
+      if (!vse.some(x => x.id === k.id)) vse.push({ ...k });
+    }
+  }
+  const istochniki = [...new Set(vse.map(k => k.istochnik))].map((imya, i) => ({
+    id: i + 1, imya,
+    rod: imya.startsWith("t.me/") ? "телеграм" : "лента",
+    adres: imya.startsWith("t.me/") ? imya.slice(5) : "—",
+    nabor: "созидательный слой", vklyuchen: true,
+    otvetil_at: S.obshchee.obhod, oshibka: "",
+  }));
+
+  let ty = { kto: "Гость витрины", stupen: "главный редактор",
+             iz_faila: false, po_klyuchu: false };
+  const sostoyaniya = {};          // id -> {sostoyanie, stupen}
+  const sled = {};                 // id -> [переходы]
+
+  function zagruzit() {
+    try {
+      const b = JSON.parse(localStorage.getItem(PAMYAT) || "{}");
+      Object.assign(sostoyaniya, b.sostoyaniya || {});
+      Object.assign(sled, b.sled || {});
+      if (b.ty) ty = b.ty;
+    } catch (_) {}
+  }
+  function sohranit() {
+    try {
+      localStorage.setItem(PAMYAT, JSON.stringify({ sostoyaniya, sled, ty }));
+    } catch (_) {}
+  }
+  zagruzit();
+
+  const sost = k => sostoyaniya[k.id]?.sostoyanie || k.sostoyanie;
+  const stol = k => sostoyaniya[k.id]?.stupen ?? k.stupen;
+  const POLKI = { "сделано": "взята", "стоит посмотреть": "серая" };
+
+  function kartochka(k) {
+    const s = sost(k);
+    return { ...k, sostoyanie: s, stupen: stol(k),
+             dostupno: (PRAVILA.dostupno[s] || {})[ty.stupen] || [] };
+  }
+
+  function schet() {
+    const n = { "сделано": 0, "стоит посмотреть": 0 };
+    let soglasovanie = 0;
+    for (const k of vse) {
+      const s = sost(k);
+      if (s === "взята") n["сделано"]++;
+      else if (s === "серая") n["стоит посмотреть"]++;
+      if (s === "на согласовании") soglasovanie++;
+    }
+    return { vsego: n, na_soglasovanii: soglasovanie };
+  }
+
+  function lenta(polka, vybrano) {
+    const nuzhno = polka === "на согласовании" ? "на согласовании" : POLKI[polka];
+    let ryady = vse.filter(k => sost(k) === nuzhno);
+    if (vybrano.length) {
+      ryady = ryady.filter(k => (k.rubriki || [k.rubrika])
+        .some(r => vybrano.includes(r)));
+    }
+    return ryady.map(kartochka);
+  }
+
+  function rubriki(polka) {
+    const nuzhno = polka === "на согласовании" ? "на согласовании" : POLKI[polka];
+    const n = {};
+    for (const k of vse.filter(x => sost(x) === nuzhno)) {
+      for (const r of (k.rubriki || [k.rubrika])) {
+        if (r) n[r] = (n[r] || 0) + 1;
+      }
+    }
+    return n;
+  }
+
+  class Otkaz extends Error {}
+
+  function perehod(telo) {
+    const k = vse.find(x => x.id === telo.id);
+    if (!k) throw new Otkaz("нет такой карточки");
+    const bylo = sost(k);
+    const p = (PRAVILA.perehody[bylo] || {})[telo.stalo];
+    if (!p) throw new Otkaz(`из «${bylo}» нельзя в «${telo.stalo}»`);
+    if (!((PRAVILA.dostupno[bylo] || {})[ty.stupen] || []).includes(telo.stalo)) {
+      throw new Otkaz(`ступень «${ty.stupen}» не может перевести в «${telo.stalo}»`);
+    }
+    if (p.nuzhna_prichina && !String(telo.pochemu || "").trim()) {
+      throw new Otkaz(`перевод в «${telo.stalo}» без причины не выполняется: `
+        + "без неё очередь пойдёт по кругу, а фильтру не на чем учиться");
+    }
+    const stupen = p.stupen_po_deystvuyushchemu[ty.stupen] ?? ty.stupen;
+    sostoyaniya[k.id] = { sostoyanie: telo.stalo, stupen };
+    (sled[k.id] = sled[k.id] || []).push({
+      bylo, stalo: telo.stalo, kto: ty.kto, rol: ty.stupen,
+      pochemu: String(telo.pochemu || "").trim(),
+      kogda: new Date().toISOString(),
+    });
+    sohranit();
+    return { ok: true, sostoyanie: telo.stalo, stupen };
+  }
+
+  globalThis.VITRINA = {
+    ty: () => ty,
+    stupeni: PRAVILA.stupeni,
+    postavit_stupen(s) { ty = { ...ty, stupen: s }; sohranit(); },
+    nachat_zanovo() {
+      for (const k of Object.keys(sostoyaniya)) delete sostoyaniya[k];
+      for (const k of Object.keys(sled)) delete sled[k];
+      sohranit();
+    },
+    async otvet(put, telo) {
+      if (telo) {
+        if (put === "/perehod") return perehod(telo);
+        if (put === "/istochnik") {
+          throw new Otkaz("на витрине список источников только для чтения: "
+            + "менять его можно там, где лента живая");
+        }
+        throw new Otkaz("нет такого пути");
+      }
+      const [put_, stroka] = put.split("?");
+      const q = new URLSearchParams(stroka || "");
+      if (put_ === "/ya") return ty;
+      if (put_ === "/istochniki") {
+        return { istochniki, rody: {}, mozhno_pravit: false };
+      }
+      if (put_ === "/lenta") {
+        const polka = q.get("polka") || "сделано";
+        const vybrano = q.getAll("rubrika");
+        const s = schet();
+        return { obhod: S.obshchee.obhod, vsego: s.vsego,
+                 na_soglasovanii: s.na_soglasovanii,
+                 ty: { kto: ty.kto, stupen: ty.stupen },
+                 rubriki: rubriki(polka), vse_rubriki: S.obshchee.vse_rubriki,
+                 polka, vybrano, kartochki: lenta(polka, vybrano),
+                 vitrina: true };
+      }
+      throw new Otkaz("нет такого пути");
+    },
+  };
+})();
+</script>
+<script>// Панель «Хорошего источника». Данные - от локальной службы, ничего не
+// впечатано. Вывод строится узлами, не строками: заголовок из чужого
+// канала не должен становиться разметкой (правило: чужой текст - данные).
+"use strict";
+const IZ_RASSHIRENIYA = /^(chrome|moz)-extension:$/.test(location.protocol);
+const ADRES_PO_UMOLCHANIYU = IZ_RASSHIRENIYA ? "http://127.0.0.1:8765" : "";
+// Настройки: адрес службы и ключ редакции. В расширении - chrome.storage,
+// на странице службы - localStorage. Ключ уходит заголовком X-Klyuch.
+const hranilishche = {
+  async chitat() {
+    try {
+      if (globalThis.chrome?.storage?.local) {
+        return await chrome.storage.local.get({ adres: "", klyuch: "" });
+      }
+      return { adres: localStorage.getItem("adres") || "",
+               klyuch: localStorage.getItem("klyuch") || "" };
+    } catch (_) { return { adres: "", klyuch: "" }; }
+  },
+  async pisat(n) {
+    try {
+      if (globalThis.chrome?.storage?.local) return await chrome.storage.local.set(n);
+      localStorage.setItem("adres", n.adres); localStorage.setItem("klyuch", n.klyuch);
+    } catch (_) {}
+  },
+};
+let nastroyki = { adres: "", klyuch: "" };
+const BAZA = () => (nastroyki.adres || ADRES_PO_UMOLCHANIYU).replace(/\/$/, "");
+const POLKI = ["сделано", "стоит посмотреть", "на согласовании"];
+const IMENA_DEYSTVIY = {
+  "предложено": "предложить", "на согласовании": "поднять",
+  "на доработку": "вернуть с правками", "отклонено": "отклонить",
+  "одобрено": "одобрить", "взята": "вернуть в ленту",
+  "в работе": "в работу", "опубликовано": "опубликовано",
+};
+const S_PRICHINOY = new Set(["на доработку", "отклонено"]);
+// rubriki - множество: редактор ведёт связку тем, а не одну. Пустое
+// множество значит «всё», как и раньше.
+let sostoyanie = { polka: "сделано", rubriki: new Set(), ekran: null };
+let poslednie = null;      // последний ответ службы: счётчики и справочник
+
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const segodnya = new Date().toDateString();
+const kogda = iso => {
+  const t = new Date(iso);
+  if (isNaN(t)) return "";
+  return t.toDateString() === segodnya
+    ? t.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })
+    : t.toLocaleDateString("ru", { day: "numeric", month: "short" });
+};
+
+class NetKlyucha extends Error {}
+async function zapros(put, telo) {
+  // Витрина: служба живёт в самой странице (vitrina.js). Ветка одна и
+  // здесь, чтобы панель осталась одна на три режима - расширение,
+  // страница службы и витрина - и не разъехалась тремя копиями.
+  if (globalThis.VITRINA) return globalThis.VITRINA.otvet(put, telo);
+  const headers = {};
+  if (nastroyki.klyuch) headers["X-Klyuch"] = nastroyki.klyuch;
+  if (telo) { headers["Content-Type"] = "application/json"; headers["X-Horoshiy-Istochnik"] = "1"; }
+  const r = await fetch(BAZA() + put, telo
+    ? { method: "POST", headers, body: JSON.stringify(telo) } : { headers });
+  const d = await r.json();
+  if (r.status === 401) throw new NetKlyucha(d.oshibka || "нужен ключ");
+  if (!r.ok) throw new Error(d.oshibka || r.statusText);
+  return d;
+}
+
+// ---- экраны ----------------------------------------------------------
+// Настройки и выбор тем открываются НА МЕСТЕ ленты, а не над ней. Пока
+// они висели сверху, шапка занимала половину панели и лента не читалась.
+const ekran = document.getElementById("ekran");
+const lenta = document.getElementById("lenta");
+const IMENA_EKRANOV = { nastroyki: "настройки", temy: "темы" };
+
+function pokazat_ekran(kakoy, soobshchenie) {
+  sostoyanie.ekran = kakoy;
+  ekran.hidden = !kakoy;
+  lenta.hidden = !!kakoy;
+  document.getElementById("ekran-nastroyki").hidden = kakoy !== "nastroyki";
+  document.getElementById("ekran-temy").hidden = kakoy !== "temy";
+  if (!kakoy) return;
+  document.getElementById("ekran-imya").textContent = IMENA_EKRANOV[kakoy];
+  ekran.scrollTop = 0;
+  if (kakoy === "nastroyki") napolnit_nastroyki(soobshchenie);
+  if (kakoy === "temy") napolnit_temy();
+}
+document.getElementById("ekran-zakryt").onclick = () => pokazat_ekran(null);
+document.getElementById("nastr-knopka").onclick = () =>
+  pokazat_ekran(sostoyanie.ekran === "nastroyki" ? null : "nastroyki");
+
+// ---- настройки: связь и источники ------------------------------------
+const forma = document.getElementById("nastroyki");
+function napolnit_nastroyki(soobshchenie) {
+  if (globalThis.VITRINA) {
+    // Адрес и ключ на витрине бессмысленны: службы нет, ходить некуда.
+    forma.hidden = true;
+    narisovat_istochniki(vitrinnyy_blok());
+    return;
+  }
+  document.getElementById("n-adres").value = nastroyki.adres || ADRES_PO_UMOLCHANIYU;
+  document.getElementById("n-klyuch").value = nastroyki.klyuch;
+  document.getElementById("n-soobshchenie").textContent = soobshchenie || "";
+  narisovat_istochniki();
+}
+forma.onsubmit = async e => {
+  e.preventDefault();
+  const adres = document.getElementById("n-adres").value.trim().replace(/\/$/, "");
+  const klyuch = document.getElementById("n-klyuch").value.trim();
+  const soobshchenie = document.getElementById("n-soobshchenie");
+  if (adres && IZ_RASSHIRENIYA && globalThis.chrome?.permissions) {
+    // Право ходить на этот адрес запрашивается у браузера здесь, а не
+    // вшито на все сайты: у расширения ровно один адрес.
+    let origin;
+    try { origin = new URL(adres).origin + "/*"; } catch (_) {
+      soobshchenie.textContent = "адрес не читается"; return; }
+    const dano = await chrome.permissions.request({ origins: [origin] });
+    if (!dano) { soobshchenie.textContent = "без разрешения на адрес служба недоступна"; return; }
+  }
+  nastroyki = { adres, klyuch };
+  await hranilishche.pisat(nastroyki);
+  try {
+    const ya = await zapros("/ya");
+    soobshchenie.textContent = `ты - ${ya.kto}, ${ya.stupen}`;
+    pokazat_ekran(null);
+    (async () => { nastroyki = await hranilishche.chitat(); obnovit(); })();
+  } catch (err) {
+    soobshchenie.textContent = err instanceof NetKlyucha ? "ключ не узнан: " + err.message
+      : "служба по этому адресу не отвечает";
+  }
+};
+
+// На витрине ступень переключается прямо здесь: лестница редакции - самое
+// непонятное со слов и самое понятное, когда её видно. У живой службы
+// ступень берётся из редакции по ключу и рукой не меняется.
+function vitrinnyy_blok() {
+  const b = el("div", "vitrina-blok");
+  b.append(el("h3", "", "Витрина"));
+  b.append(el("div", "ist-pod",
+    "Лента настоящая, но замершая: это снимок обхода. Нажатия живут в этом "
+    + "браузере и никуда не уходят. Смени ступень - изменится набор кнопок "
+    + "на карточках: это лестница редакции."));
+  const l = el("label", "", "Смотреть как");
+  const vybor = el("select");
+  for (const s of globalThis.VITRINA.stupeni) vybor.append(new Option(s, s));
+  vybor.value = globalThis.VITRINA.ty().stupen;
+  vybor.onchange = () => {
+    globalThis.VITRINA.postavit_stupen(vybor.value);
+    obnovit();
+  };
+  l.append(vybor);
+  const niz = el("div", "n-niz");
+  const zanovo = el("button", "", "начать заново");
+  zanovo.type = "button";
+  zanovo.onclick = () => {
+    if (!confirm("Вернуть все карточки на место и забыть нажатия?")) return;
+    globalThis.VITRINA.nachat_zanovo();
+    obnovit();
+  };
+  niz.append(zanovo);
+  b.append(l, niz);
+  return b;
+}
+
+async function narisovat_istochniki(pered) {
+  const gnezdo = document.getElementById("istochniki");
+  gnezdo.replaceChildren(...(pered ? [pered] : []), el("h3", "", "Источники"));
+  let d;
+  try { d = await zapros("/istochniki"); }
+  catch (e) {
+    gnezdo.append(el("div", "tolko-glavred", "список недоступен: " + e.message));
+    return;
+  }
+  const mozhno = d.mozhno_pravit;
+  // Рабочий набор выше замерного: замерный выключен намеренно, и наверху
+  // списка он читается как «всё сломано», а не «так и задумано».
+  const RABOCHIY = "созидательный слой";
+  const poryadok = [...d.istochniki].sort((a, b) =>
+    (a.nabor === RABOCHIY ? 0 : 1) - (b.nabor === RABOCHIY ? 0 : 1)
+    || a.imya.localeCompare(b.imya, "ru"));
+  let nabor = null;
+  for (const i of poryadok) {
+    if (i.nabor !== nabor) {
+      nabor = i.nabor;
+      gnezdo.append(el("div", "nabor-imya", nabor === RABOCHIY
+        ? "в работе - из них собирается лента"
+        : `${nabor} - только для замера плотности, в ленту не идёт`));
+    }
+    const ryad = el("div", "ist-ryad" + (i.vklyuchen ? "" : " ist-vykl"));
+    const gal = el("input");
+    gal.type = "checkbox"; gal.checked = i.vklyuchen; gal.disabled = !mozhno;
+    gal.setAttribute("aria-label", "собирать: " + i.imya);
+    gal.onchange = () => pravit_istochnik(
+      { chto: "pereklyuchit", id: i.id, vklyuchen: gal.checked }, gnezdo);
+    const telo = el("div", "ist-telo");
+    telo.append(el("div", "ist-imya", i.imya));
+    const chasti = [i.rod, i.adres];
+    chasti.push(i.otvetil_at ? "отвечал " + kogda(i.otvetil_at) : "ещё не отвечал");
+    if (i.oshibka) chasti.push("ошибка: " + i.oshibka.slice(0, 60));
+    telo.append(el("div", "ist-pod", chasti.join(" · ")));
+    ryad.append(gal, telo);
+    if (mozhno) {
+      const ub = el("button", "ist-ubrat", "убрать");
+      ub.type = "button";
+      ub.onclick = () => { if (confirm(`Убрать источник «${i.imya}»?`))
+        pravit_istochnik({ chto: "ubrat", id: i.id }, gnezdo); };
+      ryad.append(ub);
+    }
+    gnezdo.append(ryad);
+  }
+  if (!mozhno) {
+    gnezdo.append(el("div", "tolko-glavred",
+      "список источников правит главный редактор - у тебя он только для чтения"));
+    return;
+  }
+  gnezdo.append(forma_novogo(d.rody, gnezdo));
+}
+
+function forma_novogo(rody, gnezdo) {
+  const f = el("form", "ist-novyy");
+  const imya = el("input"); imya.placeholder = "название, например «Стройгазета»";
+  imya.setAttribute("aria-label", "название источника");
+  const rod = el("select"); rod.setAttribute("aria-label", "род источника");
+  for (const r of Object.keys(rody)) rod.append(new Option(r, r));
+  const adres = el("input"); adres.setAttribute("aria-label", "адрес источника");
+  const podskazka = () => { adres.placeholder = rody[rod.value] || ""; };
+  rod.onchange = podskazka; podskazka();
+  const niz = el("div", "n-niz");
+  const knopka = el("button", "", "добавить"); knopka.type = "submit";
+  const otvet = el("span");
+  niz.append(knopka, otvet);
+  f.append(el("h3", "", "Добавить источник"), imya, rod, adres, niz);
+  f.onsubmit = async e => {
+    e.preventDefault();
+    otvet.textContent = "";
+    const ok = await pravit_istochnik({ chto: "dobavit", imya: imya.value,
+      rod: rod.value, adres: adres.value }, gnezdo, otvet);
+    if (ok) { imya.value = ""; adres.value = ""; }
+  };
+  return f;
+}
+
+async function pravit_istochnik(telo, gnezdo, otvet) {
+  try {
+    await zapros("/istochnik", telo);
+    narisovat_istochniki();
+    return true;
+  } catch (e) {
+    if (otvet) otvet.textContent = e.message;
+    else {
+      gnezdo.querySelector(".oshibka")?.remove();
+      gnezdo.append(el("div", "oshibka", e.message));
+    }
+    return false;
+  }
+}
+
+// ---- темы ------------------------------------------------------------
+function chip(imya, n, vybrana, pustaya) {
+  const b = el("button", "r" + (pustaya ? " pustaya" : ""), imya);
+  b.type = "button";
+  b.setAttribute("aria-pressed", String(!!vybrana));
+  if (n !== null) b.append(el("span", "n", String(n)));
+  return b;
+}
+
+function pereklyuchit_temu(imya) {
+  if (sostoyanie.rubriki.has(imya)) sostoyanie.rubriki.delete(imya);
+  else sostoyanie.rubriki.add(imya);
+  obnovit();
+}
+
+// Строка тем всегда в одну строку: выбранные, потом самые полные, потом
+// кнопка «темы» со счётом. Остальные 40 живут на своём экране.
+function stroka_tem(d) {
+  const schet = d.rubriki || {};
+  const stroka = document.getElementById("temy-stroka");
+  const vse = chip("всё", null, sostoyanie.rubriki.size === 0, false);
+  vse.onclick = () => { sostoyanie.rubriki.clear(); obnovit(); };
+  const rasteg = el("div", "rasteg");
+  const pokazat = [...sostoyanie.rubriki];
+  for (const [r] of Object.entries(schet).sort((a, b) => b[1] - a[1])) {
+    if (pokazat.length >= 6) break;
+    if (!pokazat.includes(r)) pokazat.push(r);
+  }
+  for (const r of pokazat) {
+    const b = chip(r, schet[r] || 0, sostoyanie.rubriki.has(r), !schet[r]);
+    b.onclick = () => pereklyuchit_temu(r);
+    rasteg.append(b);
+  }
+  const knopka = el("button", "temy-knopka");
+  knopka.type = "button";
+  knopka.append("темы");
+  if (sostoyanie.rubriki.size) knopka.append(" ", el("b", "", String(sostoyanie.rubriki.size)));
+  knopka.onclick = () => pokazat_ekran(sostoyanie.ekran === "temy" ? null : "temy");
+  stroka.replaceChildren(vse, rasteg, knopka);
+}
+
+function napolnit_temy() {
+  const gnezdo = document.getElementById("ekran-temy");
+  const schet = poslednie?.rubriki || {};
+  const spisok = poslednie?.vse_rubriki || [];
+  const nad = el("div", "temy-nad");
+  nad.append(el("span", "", sostoyanie.rubriki.size
+    ? `выбрано ${sostoyanie.rubriki.size} · показываются материалы любой из них`
+    : "ничего не выбрано - в ленте все темы"));
+  if (sostoyanie.rubriki.size) {
+    const sbros = el("button", "", "сбросить");
+    sbros.type = "button";
+    sbros.onclick = () => { sostoyanie.rubriki.clear(); napolnit_temy(); obnovit(); };
+    nad.append(sbros);
+  }
+  const deti = [nad];
+  for (const g of spisok) {
+    const blok = el("div", "gruppa");
+    blok.append(el("h4", "", g.gruppa));
+    const set = el("div", "set");
+    for (const r of g.rubriki) {
+      const b = chip(r, schet[r] || 0, sostoyanie.rubriki.has(r), !schet[r]);
+      b.onclick = () => { pereklyuchit_temu(r); napolnit_temy(); };
+      set.append(b);
+    }
+    blok.append(set);
+    deti.push(blok);
+  }
+  if (!spisok.length) deti.push(el("div", "tolko-glavred",
+    "справочник тем придёт вместе с лентой - служба пока не ответила"));
+  gnezdo.replaceChildren(...deti);
+}
+
+// ---- лента -----------------------------------------------------------
+function shapka(d) {
+  document.getElementById("svezhest").textContent = d.obhod
+    ? "обход " + kogda(d.obhod) : "обхода ещё не было";
+  const polki = document.getElementById("polki");
+  polki.replaceChildren(...POLKI.map(p => {
+    const b = el("button", "polka", p);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(p === d.polka));
+    const n = p === "на согласовании" ? d.na_soglasovanii : d.vsego[p];
+    b.append(el("span", "n", String(n)));
+    // Полку меняем, темы оставляем: редактор ведёт свои темы через все
+    // полки, и сброс на каждом переключении был бы работой за него.
+    b.onclick = () => { sostoyanie.polka = p; obnovit(); };
+    return b;
+  }));
+  stroka_tem(d);
+  document.getElementById("kto").textContent = d.ty.kto === d.ty.stupen ? d.ty.kto : `${d.ty.kto}, ${d.ty.stupen}`;
+  const och = document.getElementById("och");
+  och.replaceChildren();
+  if (d.na_soglasovanii) {
+    och.append("на согласовании: ", el("b", "", String(d.na_soglasovanii)));
+  } else och.textContent = "очередь пуста";
+}
+
+function kartochka(k) {
+  const div = el("div", "k");
+  const verh = el("div", "verh");
+  verh.append(el("span", "ist", k.istochnik), el("span", "", kogda(k.data)));
+  const zag = k.ssylka ? el("a", "zag", k.zagolovok) : el("div", "zag", k.zagolovok);
+  if (k.ssylka) { zag.href = k.ssylka; zag.target = "_blank"; zag.rel = "noopener"; }
+  const niz = el("div", "niz");
+  const vse = k.rubriki && k.rubriki.length ? k.rubriki : [k.rubrika];
+  const prochie = vse.filter(r => r && r !== k.rubrika);
+  const poch = el("details", "poch");
+  const sam = el("summary", "", k.rubrika === "не определено" ? "без рубрики" : k.rubrika);
+  if (prochie.length) sam.append(el("span", "eshche", ` +${prochie.length}`));
+  const telo = el("div");
+  if (prochie.length) telo.append("также: " + prochie.join(", ") + ". ");
+  telo.append(k.osnovanie || "ни одно правило не сработало");
+  poch.append(sam, telo);
+  niz.append(poch);
+  // Стык выбранных тем - ровно то, ради чего темы и берут вместе.
+  const svoi = vse.filter(r => sostoyanie.rubriki.has(r));
+  if (sostoyanie.rubriki.size > 1 && svoi.length > 1) {
+    niz.append(el("span", "styk", "на стыке: " + svoi.join(" + ")));
+  }
+  if (k.zhanr) niz.append(el("span", "zhanr", k.zhanr));
+  const st = { "полная": 3, "неполная": 2, "слабая": 1 }[k.polnota] || 1;
+  const pol = el("span", "pol");
+  pol.title = "полнота: " + k.polnota;
+  for (let i = 1; i <= 3; i++) pol.append(el("i", i <= st ? "on" : ""));
+  niz.append(pol, el("span", "polnota-slovo", k.polnota));
+  div.append(verh, zag, niz);
+  if (k.stupen && k.sostoyanie !== "взята") {
+    div.append(el("div", "stol", `${k.sostoyanie} · на столе: ${k.stupen}`));
+  }
+  if (k.dostupno.length) {
+    const d = el("div", "deystviya");
+    for (const stalo of k.dostupno) {
+      const b = el("button", "", IMENA_DEYSTVIY[stalo] || stalo);
+      b.type = "button";
+      b.onclick = () => perehod(k, stalo, div);
+      d.append(b);
+    }
+    div.append(d);
+  }
+  return div;
+}
+
+async function perehod(k, stalo, div) {
+  let pochemu = "";
+  if (S_PRICHINOY.has(stalo)) {
+    pochemu = prompt(`Причина (${IMENA_DEYSTVIY[stalo]}) - без неё перевод не выполняется:`) || "";
+    if (!pochemu.trim()) return;
+  }
+  try {
+    await zapros("/perehod", { id: k.id, stalo, pochemu });
+    (async () => { nastroyki = await hranilishche.chitat(); obnovit(); })();
+  } catch (e) {
+    div.querySelector(".oshibka")?.remove();
+    div.append(el("div", "oshibka", e.message));
+  }
+}
+
+// Снимок обхода, положенный в расширение сборкой. Показывается ТОЛЬКО когда
+// служба не отвечает, и всегда с пометкой: это не живая лента, а слепок,
+// и действий в нём нет - записать переход некуда.
+let snimok = null;
+async function izSnimka() {
+  if (!snimok) snimok = await (await fetch("snimok.json")).json();
+  const polka = snimok.polki[sostoyanie.polka] || { kartochki: [], rubriki: {} };
+  const kartochki = polka.kartochki
+    .filter(k => !sostoyanie.rubriki.size
+      || (k.rubriki || [k.rubrika]).some(r => sostoyanie.rubriki.has(r)))
+    .map(k => ({ ...k, dostupno: [] }));
+  return { ...snimok.obshchee, polka: sostoyanie.polka, rubriki: polka.rubriki,
+           vse_rubriki: snimok.obshchee.vse_rubriki || [], kartochki, snimok: true };
+}
+
+function pometka(d) {
+  document.getElementById("pometka")?.remove();
+  if (!d.snimok && !d.vitrina) return;
+  const b = el("div", "pometka", d.vitrina
+    ? "витрина: лента — настоящий обход " + kogda(d.obhod) + ", но замерший. "
+      + "Кнопки работают, нажатия живут только в этом браузере и никуда не уходят."
+    : "служба не отвечает - показан снимок обхода, действия недоступны. "
+      + "Живая лента: python3 hi.py sluzhba");
+  b.id = "pometka";
+  document.querySelector("header").after(b);
+}
+
+async function obnovit() {
+  let d, oshibka = "";
+  try {
+    const q = new URLSearchParams({ polka: sostoyanie.polka });
+    for (const r of sostoyanie.rubriki) q.append("rubrika", r);
+    d = await zapros("/lenta?" + q);
+  } catch (e) {
+    oshibka = e.message;
+    if (e instanceof NetKlyucha) {
+      // Служба есть, ключа нет: снимок тут ни при чём - нужна анкета у бота.
+      pokazat_ekran("nastroyki", "служба требует ключ: получи у @redhnbot");
+      return;
+    }
+    try { d = await izSnimka(); } catch (_) { d = null; }
+  }
+  if (!d) {
+    pokazat_ekran(null);
+    lenta.replaceChildren(el("div", "pusto-tekst",
+      "служба не отвечает и снимка нет: запусти `python3 hi.py sluzhba` (" + oshibka + ")"));
+    return;
+  }
+  poslednie = d;
+  shapka(d);
+  pometka(d);
+  lenta.replaceChildren(...(d.kartochki.length
+    ? d.kartochki.map(kartochka)
+    : [el("div", "pusto-tekst", sostoyanie.rubriki.size
+        ? "по выбранным темам на этой полке пусто"
+        : "на этой полке пусто")]));
+}
+(async () => { nastroyki = await hranilishche.chitat(); obnovit(); })();
+</script>
+</html>
